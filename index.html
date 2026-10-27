@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BulkPrep & Workout Manager - Venodh Nadasen</title>
+    <style>
+        :root {
+            --bg-color: #121417;
+            --card-bg: #1c2128;
+            --border-color: #30363d;
+            --text-main: #f0f6fc;
+            --text-muted: #8b949e;
+            --accent-gold: #d4af37;
+            --accent-gold-hover: #e6c547;
+            --accent-orange: #e67e22;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding: 20px; line-height: 1.5; }
+        .container { max-width: 950px; margin: 0 auto; }
+        header { text-align: center; margin-bottom: 25px; border-bottom: 2px solid var(--accent-gold); padding-bottom: 15px; }
+        h1 { font-size: 1.8rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-main); }
+        .subtitle { font-size: 0.9rem; color: var(--text-muted); margin-top: 5px; }
+        
+        .tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
+        .tab-btn { background: #161b22; color: var(--text-muted); border: 1px solid var(--border-color); padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .tab-btn.active { background: var(--accent-gold); color: #121417; border-color: var(--accent-gold); }
+
+        .card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        h2 { font-size: 1.2rem; color: var(--accent-gold); margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; }
+        
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
+        .form-group { display: flex; flex-direction: column; }
+        label { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px; }
+        input, select { background-color: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-main); padding: 10px; border-radius: 6px; font-size: 0.95rem; }
+        input:focus, select:focus { outline: none; border-color: var(--accent-gold); }
+        
+        button { background-color: var(--accent-gold); color: #121417; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: background 0.2s; font-size: 0.95rem; }
+        button:hover { background-color: var(--accent-gold-hover); }
+        
+        .alert-box { background: rgba(230, 126, 34, 0.15); border: 1px solid var(--accent-orange); padding: 12px; border-radius: 6px; margin-bottom: 15px; font-size: 0.9rem; color: #f39c12; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
+        th, td { border: 1px solid var(--border-color); padding: 10px; text-align: left; }
+        th { background-color: #161b22; color: var(--accent-gold); text-transform: uppercase; font-size: 0.8rem; }
+        tr:nth-child(even) td { background-color: rgba(255,255,255,0.02); }
+        
+        .macro-totals { display: flex; justify-content: space-around; background: #161b22; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color); font-weight: bold; margin-bottom: 15px; text-align: center; }
+        .macro-totals div span { display: block; font-size: 0.75rem; color: var(--text-muted); font-weight: normal; }
+        
+        .checkbox-group { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 15px; }
+        .checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: var(--text-main); cursor: pointer; }
+        .checkbox-label input { width: 18px; height: 18px; accent-color: var(--accent-gold); }
+
+        a.demo-link { color: var(--accent-gold); text-decoration: none; font-weight: 500; }
+        a.demo-link:hover { text-decoration: underline; }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>BulkPrep & Workout Manager</h1>
+        <div class="subtitle">Venodh Nadasen &bull; Dynamic Nutrition & Training Control Center</div>
+    </header>
+
+    <div class="tabs">
+        <button class="tab-btn active" id="btn-meal-tab" onclick="switchTab('meal')">Meal Plan Generator</button>
+        <button class="tab-btn" id="btn-workout-tab" onclick="switchTab('workout')">Workout Plan Generator</button>
+    </div>
+
+    <!-- ================= MEAL PLAN APP ================= -->
+    <div id="meal-tab">
+        <div class="card" id="meal-input-card">
+            <h2>Sunday Grocery & Calorie Configuration</h2>
+            <p class="subtitle" style="margin-bottom: 15px;">Set your target calories and input your stock.</p>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Target Calories (kcal)</label>
+                    <input type="number" id="targetCalories" value="3220" step="50">
+                </div>
+                <div class="form-group">
+                    <label>Goal Mode</label>
+                    <select id="mealGoal">
+                        <option value="bulking">Bulking (+ Surplus)</option>
+                        <option value="maintenance">Maintenance / Recovery</option>
+                        <option value="cutting">Cutting (- Deficit)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Whey Protein Powder (Scoops left)</label>
+                    <input type="number" id="proteinScoops" value="12" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Chicken Fillets (kg)</label>
+                    <input type="text" id="chickenKg" value="3.5">
+                </div>
+                <div class="form-group">
+                    <label>Lean Mince (kg)</label>
+                    <input type="text" id="minceKg" value="3.0">
+                </div>
+                <div class="form-group">
+                    <label>Full-Cream Milk (Litres)</label>
+                    <input type="number" id="milkLitres" value="14" min="0">
+                </div>
+            </div>
+            <button type="button" onclick="generateMealPlan()">Generate Meal Plan</button>
+        </div>
+
+        <div class="card hidden" id="meal-plan-card">
+            <h2>
+                <span>Generated Meal Plan & Inventory Status</span>
+                <button type="button" onclick="resetMealForm()" style="font-size: 0.8rem; padding: 5px 10px;">Edit Inputs</button>
+            </h2>
+            
+            <div id="contingency-alert" class="alert-box hidden">
+                ⚠️ <strong>Protein Powder Shortage Alert:</strong> Your whey powder inventory is running low. Later meals have automatically swapped to whole-food alternatives.
+            </div>
+
+            <div class="macro-totals">
+                <div><span id="disp-cals">3,220</span> kcal<span>Target Calories</span></div>
+                <div>200g<span>Target Protein</span></div>
+                <div><span id="disp-carbs">295</span>g<span>Target Carbs</span></div>
+                <div><span id="disp-fats">125g</span><span>Target Fats</span></div>
+            </div>
+
+            <h3 style="font-size: 1rem; color: var(--accent-gold); margin-bottom: 10px;" id="schedule-title">Daily Meal Schedule</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Meal / Time</th>
+                        <th>Primary Food & Quantities (Scaled)</th>
+                        <th>Macros</th>
+                    </tr>
+                </thead>
+                <tbody id="meal-table-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ================= WORKOUT PLAN APP ================= -->
+    <div id="workout-tab" class="hidden">
+        <div class="card" id="workout-input-card">
+            <h2>Equipment & Training Configuration</h2>
+            <p class="subtitle" style="margin-bottom: 15px;">Select your available home equipment and training goal.</p>
+            
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 8px;">Available Equipment:</label>
+                <div class="checkbox-group">
+                    <label class="checkbox-label"><input type="checkbox" id="eq-barbell" checked> Barbell & DIY Weights</label>
+                    <label class="checkbox-label"><input type="checkbox" id="eq-db" checked> 30kg 3-in-1 Dumbbells</label>
+                    <label class="checkbox-label"><input type="checkbox" id="eq-pullup" checked> Door Frame Pull-Up Bar</label>
+                    <label class="checkbox-label"><input type="checkbox" id="eq-ab" checked> Ab Roller</label>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label>Training Goal Mode</label>
+                <select id="workoutGoal">
+                    <option value="bulking">Bulking (Hypertrophy - 1-2 RIR, Heavy Load)</option>
+                    <option value="maintenance">Maintenance (Strength & Condition)</option>
+                    <option value="cutting">Cutting (Volume & Density - Higher Reps)</option>
+                </select>
+            </div>
+            
+            <button type="button" onclick="generateWorkoutPlan()">Generate Custom Workout Split</button>
+        </div>
+
+        <div class="card hidden" id="workout-plan-card">
+            <h2>
+                <span>Generated Weekly Training Split</span>
+                <button type="button" onclick="resetWorkoutForm()" style="font-size: 0.8rem; padding: 5px 10px;">Change Setup</button>
+            </h2>
+            <div id="workout-content"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+function switchTab(tab) {
+    if(tab === 'meal') {
+        document.getElementById('btn-meal-tab').classList.add('active');
+        document.getElementById('btn-workout-tab').classList.remove('active');
+        document.getElementById('meal-tab').classList.remove('hidden');
+        document.getElementById('workout-tab').classList.add('hidden');
+    } else {
+        document.getElementById('btn-workout-tab').classList.add('active');
+        document.getElementById('btn-meal-tab').classList.remove('active');
+        document.getElementById('workout-tab').classList.remove('hidden');
+        document.getElementById('meal-tab').classList.add('hidden');
+    }
+}
+
+function generateMealPlan() {
+    const calsField = document.getElementById('targetCalories');
+    const scoopsField = document.getElementById('proteinScoops');
+    
+    const cals = calsField ? parseInt(calsField.value) || 3220 : 3220;
+    const scoops = scoopsField ? parseInt(scoopsField.value) || 0 : 0;
+    
+    let carbs = Math.round((cals * 0.36) / 4);
+    let fats = Math.round((cals * 0.35) / 9);
+    
+    const dispCals = document.getElementById('disp-cals');
+    const dispCarbs = document.getElementById('disp-carbs');
+    const dispFats = document.getElementById('disp-fats');
+    
+    if(dispCals) dispCals.innerText = cals;
+    if(dispCarbs) dispCarbs.innerText = carbs;
+    if(dispFats) dispFats.innerText = fats + 'g';
+
+    const isShortage = scoops <= 12;
+    const alertBox = document.getElementById('contingency-alert');
+    
+    if (alertBox) {
+        if (isShortage) {
+            alertBox.classList.remove('hidden');
+        } else {
+            alertBox.classList.add('hidden');
+        }
+    }
+
+    let scaleFactor = cals / 3220;
+    let riceGrams = Math.round(90 * scaleFactor);
+    let maizeGrams = Math.round(80 * scaleFactor);
+    let breadSlices = cals < 2500 ? 3 : 4;
+    
+    let html = `
+        <tr>
+            <td><strong>Meal 1</strong><br>06:30 AM</td>
+            <td>Staple Mealie Meal & Peanut Butter: ${maizeGrams}g Maize Meal + 1 block Dark Chocolate + 1 tsp Peanut Butter</td>
+            <td>~${Math.round(440 * scaleFactor)} kcal<br>P: 13g | C: ${Math.round(75 * scaleFactor)}g | F: ${Math.round(11 * scaleFactor)}g</td>
+        </tr>
+        <tr>
+            <td><strong>Meal 2</strong><br>08:00 AM</td>
+            <td>Boiled Eggs & Mayo: 4 Large Boiled Eggs + 1 Tbsp Mayonnaise</td>
+            <td>~390 kcal<br>P: 25g | C: 3g | F: 31g</td>
+        </tr>
+        <tr>
+            <td><strong>Meal 3</strong><br>10:30 AM</td>
+            <td>${isShortage ? `<strong>[Whole Food Swap]</strong> ${breadSlices} Slices Brown Bread + 30g Peanut Butter + 250ml Milk Shake` : 'Staple Protein Shake & Peanuts: 60g Peanuts + 2 Scoops Whey + 250ml Milk'}</td>
+            <td>~${isShortage ? '650' : '780'} kcal<br>P: 65g | C: ${isShortage ? '45' : '30'}g | F: ${isShortage ? '32' : '46'}g</td>
+        </tr>
+        <tr>
+            <td><strong>Meal 4 (Lunch)</strong><br>01:30 PM</td>
+            <td>Select One Staple: 200g Chicken Fillets + ${riceGrams}g Brown Rice (or Mince / Pork options)</td>
+            <td>~${Math.round(700 * scaleFactor)} kcal<br>P: 52g | C: ${Math.round(65 * scaleFactor)}g | F: ${Math.round(20 * scaleFactor)}g</td>
+        </tr>
+        <tr>
+            <td><strong>Meal 5</strong><br>04:30 PM</td>
+            <td>${isShortage ? `<strong>[Whole Food Swap]</strong> ${breadSlices} Slices Oats & Honey Bread + 2 Tbsp Peanut Butter` : `Pre-Workout: ${breadSlices} Slices Oats & Honey Bread + 2 Tbsp Peanut Butter (+ Workout Shake)`}</td>
+            <td>~${Math.round(510 * scaleFactor)} kcal<br>P: 22g | C: ${Math.round(62 * scaleFactor)}g | F: ${Math.round(18 * scaleFactor)}g</td>
+        </tr>
+        <tr>
+            <td><strong>Meal 6 (Supper)</strong><br>08:00 PM</td>
+            <td>Heavy Evening Recovery: 250g Lean Mince + ${riceGrams}g Brown Rice (or Pork Chops / Chicken options)</td>
+            <td>~${Math.round(860 * scaleFactor)} kcal<br>P: 68g | C: ${Math.round(70 * scaleFactor)}g | F: ${Math.round(28 * scaleFactor)}g</td>
+        </tr>
+    `;
+    
+    const tableBody = document.getElementById('meal-table-body');
+    const inputCard = document.getElementById('meal-input-card');
+    const planCard = document.getElementById('meal-plan-card');
+    
+    if(tableBody) tableBody.innerHTML = html;
+    if(inputCard) inputCard.classList.add('hidden');
+    if(planCard) planCard.classList.remove('hidden');
+}
+
+function resetMealForm() {
+    const planCard = document.getElementById('meal-plan-card');
+    const inputCard = document.getElementById('meal-input-card');
+    if(planCard) planCard.classList.add('hidden');
+    if(inputCard) inputCard.classList.remove('hidden');
+}
+
+function generateWorkoutPlan() {
+    const eqBarbell = document.getElementById('eq-barbell');
+    const eqDb = document.getElementById('eq-db');
+    const eqPullup = document.getElementById('eq-pullup');
+    const eqAb = document.getElementById('eq-ab');
+    const workoutGoal = document.getElementById('workoutGoal');
+
+    const hasBarbell = eqBarbell ? eqBarbell.checked : true;
+    const hasDB = eqDb ? eqDb.checked : true;
+    const hasPullup = eqPullup ? eqPullup.checked : true;
+    const hasAb = eqAb ? eqAb.checked : true;
+    const goal = workoutGoal ? workoutGoal.value : 'bulking';
+
+    let repScheme = goal === 'bulking' ? '3 x 6-8 (1-2 RIR)' : (goal === 'cutting' ? '3 x 12-15 (High Volume)' : '3 x 8-10 (Standard)');
+    
+    let html = `<p class="subtitle" style="margin-bottom: 15px;">Goal: <strong>${goal.toUpperCase()}</strong> | Active Equipment Filter Applied</p>`;
+    
+    const days = [
+        { day: 'Monday: Push (Chest, Shoulders, Triceps)', exercises: [
+            { name: hasBarbell ? 'Incline Barbell Bench Press (30°)' : 'Incline Dumbbell Press', target: 'Upper Chest', link: 'https://www.youtube.com/results?search_query=incline+barbell+bench+press' },
+            { name: hasBarbell ? 'Flat Barbell Bench Press' : 'Flat Dumbbell Press', target: 'Mid Chest', link: 'https://www.youtube.com/results?search_query=flat+barbell+bench+press' },
+            { name: hasDB ? 'Seated Dumbbell Shoulder Press' : 'Pike Push-ups', target: 'Front & Side Delts', link: 'https://www.youtube.com/results?search_query=seated+dumbbell+shoulder+press' },
+            { name: hasAb ? 'Ab Wheel Rollout' : 'Floor Crunches', target: 'Core', link: 'https://www.youtube.com/results?search_query=ab+wheel+rollout' }
+        ]},
+        { day: 'Tuesday: Pull (Back & Biceps)', exercises: [
+            { name: hasBarbell ? 'Overhand Bent-Over Barbell Row' : 'Dumbbell Bent-Over Row', target: 'Lats & Upper Back', link: 'https://www.youtube.com/results?search_query=bent+over+barbell+row' },
+            { name: hasPullup ? 'Neutral-Grip Pull-Ins / Pull-Ups' : 'Dumbbell Pullovers', target: 'Lat Width', link: 'https://www.youtube.com/results?search_query=pull+ups+form' },
+            { name: hasDB ? 'Dumbbell Concentration Curls' : 'Bodyweight Bicep Curls', target: 'Biceps', link: 'https://www.youtube.com/results?search_query=dumbbell+concentration+curls' },
+            { name: hasBarbell ? 'Floor Skullcrushers (Barbell)' : 'Dumbbell Overhead Tricep Extension', target: 'Triceps', link: 'https://www.youtube.com/results?search_query=floor+skull+crushers' }
+        ]},
+        { day: 'Wednesday: Legs 1 (Quad Focus)', exercises: [
+            { name: hasBarbell ? 'Zercher / Front Barbell Squats' : 'Goblet Squats', target: 'Quads & Core', link: 'https://www.youtube.com/results?search_query=zercher+squat+form' },
+            { name: hasDB ? 'Dumbbell Bulgarian Split Squats' : 'Bodyweight Lunges', target: 'Quads & Glutes', link: 'https://www.youtube.com/results?search_query=bulgarian+split+squat' },
+            { name: hasAb ? 'Ab Wheel Rollout' : 'Planks', target: 'Core', link: 'https://www.youtube.com/results?search_query=ab+wheel+rollout' }
+        ]},
+        { day: 'Thursday: Upper Hypertrophy', exercises: [
+            { name: hasDB ? 'Seated 70° Incline Press' : 'Push-ups', target: 'Upper Shelf', link: 'https://www.youtube.com/results?search_query=70+degree+incline+dumbbell+press' },
+            { name: hasDB ? 'Dumbbell Lateral Raises (Strict)' : 'Arm Raises', target: 'Side Delts', link: 'https://www.youtube.com/results?search_query=dumbbell+lateral+raise' },
+            { name: hasBarbell ? 'Close-Grip Floor Press' : 'Diamond Push-ups', target: 'Triceps & Inner Chest', link: 'https://www.youtube.com/results?search_query=close+grip+floor+press' }
+        ]},
+        { day: 'Friday: Legs 2 (Posterior Chain)', exercises: [
+            { name: hasBarbell ? 'Barbell Romanian Deadlifts (RDL)' : 'Dumbbell RDL', target: 'Hamstrings & Glutes', link: 'https://www.youtube.com/results?search_query=barbell+romanian+deadlift' },
+            { name: hasDB ? 'Dumbbell Single-Leg RDL' : 'Bodyweight Glute Bridges', target: 'Hamstrings', link: 'https://www.youtube.com/results?search_query=single+leg+romanian+deadlift' },
+            { name: 'Diamond Push-Ups', target: 'Chest & Triceps', link: 'https://www.youtube.com/results?search_query=diamond+push+ups' }
+        ]}
+    ];
+
+    days.forEach(d => {
+        html += `<h3 style="font-size: 1rem; color: var(--accent-gold); margin-top: 15px; margin-bottom: 5px;">${d.day}</h3>`;
+        html += `<table><thead><tr><th>Exercise</th><th>Target Muscle</th><th>Sets / Reps</th><th>Video Demo</th></tr></thead><tbody>`;
+        d.exercises.forEach(ex => {
+            html += `<tr><td>${ex.name}</td><td>${ex.target}</td><td>${repScheme}</td><td><a class="demo-link" href="${ex.link}" target="_blank">Watch Demo ↗</a></td></tr>`;
+        });
+        html += `</tbody></table>`;
+    });
+
+    const workoutContent = document.getElementById('workout-content');
+    const workoutInputCard = document.getElementById('workout-input-card');
+    const workoutPlanCard = document.getElementById('workout-plan-card');
+
+    if(workoutContent) workoutContent.innerHTML = html;
+    if(workoutInputCard) workoutInputCard.classList.add('hidden');
+    if(workoutPlanCard) workoutPlanCard.classList.remove('hidden');
+}
+
+function resetWorkoutForm() {
+    const workoutPlanCard = document.getElementById('workout-plan-card');
+    const workoutInputCard = document.getElementById('workout-input-card');
+    if(workoutPlanCard) workoutPlanCard.classList.add('hidden');
+    if(workoutInputCard) workoutInputCard.classList.remove('hidden');
+}
+</script>
+
+</body>
+</html>
